@@ -15,5 +15,13 @@ def Upload_Data():
 	return something
 
 def Empty_Garbage():
-	do something
+	MOUSE_CONTROLLER.position=(573, 259)
+	time.sleep(0.03)
+	mouse.click(Button.left,1)
+	MOUSE_CONTROLLER.press(MOUSE_BUTTON.left)
+	for i in range(260,450,4):
+	    time.sleep(0.02)
+	    MOUSE_CONTROLLER.position=(573, i)
+	time.sleep(2)
+	MOUSE_CONTROLLER.release(MOUSE_BUTTON.left)
 	
