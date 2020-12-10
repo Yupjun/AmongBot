@@ -11,8 +11,14 @@ MOUSE_CONTROLLER= pynput.mouse.Controller()
 MOUSE_BUTTON = pynput.mouse.Button
 
 def Upload_Data():
-	do something
-	return something
+	MOUSE_CONTROLLER.position=(402, 393)
+	mouse.click(Button.left,1)
+	time.sleep(0.5)
+	mouse.click(Button.left,1)
+	MOUSE_CONTROLLER.press(MOUSE_BUTTON.left)
+	time.sleep(9)
+	print("done")
+	MOUSE_CONTROLLER.release(MOUSE_BUTTON.left)
 
 def Empty_Garbage():
 	MOUSE_CONTROLLER.position=(573, 259)
