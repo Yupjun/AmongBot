@@ -1,3 +1,4 @@
+# %%
 import cv2
 import matplotlib.pyplot as plt
 import os
@@ -7,7 +8,7 @@ import random
 # home_dir = 'C:\\Users\\Jisu\\Desktop\\Amongus-Bot-main\\Amongus-Bot-main\\img_assets'
 home_dir = './'
 output_dir = os.path.join(home_dir, 'output')
-
+# %%
 def choose_background():
     background_dir = os.path.join(home_dir, 'skeld_map_bg')
     background_random = random.choice(os.listdir(background_dir))
@@ -35,11 +36,11 @@ def make_mask(character):
     # Coordinate
     x = np.linspace(-half_W, half_W, W+1)
     y = np.linspace(-half_H, half_H, H+1)
-    xv, yv = np.meshgrid(x[:-1], y[:-1])
+    xv, yv = np.meshgrid(x[:W], y[:H])
     
     # weight, bias
     w, b = random.randint(-5, 5), random.randint(-15, 15)
-    fx = w*x[:-1]+b 
+    fx = w*x[:W]+b 
     
     # upper? bottom?
     bottom = random.randint(0,1)
@@ -50,6 +51,22 @@ def make_mask(character):
             new_mask[:, idx][yv[:, idx]>=fx[idx]] = 128
 
     return new_mask
+
+def paste_transparency(background, character, x, y, w, h):
+    bg_copy = background.copy()
+    
+    character_image = character[..., :3]
+    chracter_mask = np.equal(character[..., 3:], 255, dtype=np.uint8)
+    transparency_mask = np.equal(character[..., 3:], 128, dtype=np.uint8)
+    
+    paste_bg = (1.0 - chracter_mask) * (1.0 - transparency_mask) * bg_copy[y:y+h, x:x+w]
+    paste_ch = chracter_mask * character_image
+    paste_transparency = (transparency_mask * np.maximum(0, np.int16(bg_copy[y:y+h, x:x+w])-75))
+    
+    # Paste character
+    bg_copy[y:y+h, x:x+w] = paste_bg + paste_ch + paste_transparency
+
+    return bg_copy
 
 def overlay_transparent(background, overlay, x, y):
     '''
@@ -84,24 +101,37 @@ def overlay_transparent(background, overlay, x, y):
             axis = 2,
         )
 
-    overlay_image = overlay[..., :3]
-    mask = overlay[..., 3:] / 255.0
+    mode = random.randint(0, 1)
 
-    # Basic Paste    
-    background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
+    if mode==0:
+        # Basic Paste    
+        overlay_image = overlay[..., :3]
+        mask = overlay[..., 3:] / 255.0
 
-    # Apply Image Blending
-    # if random.random() > 0.9
-    # cv2.addWeighted(img1,0.7,img2,0.3,0)
+        background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
+    
+    elif mode==1:
+        overlay[..., -1] = make_mask(overlay)
+        background = paste_transparency(background, overlay, x, y, w, h)
+    
+    # elif mode==2:
+    #     # Apply Image Blending
+    #     if random.random() > 0.9
+    #     cv2.addWeighted(img1,0.7,img2,0.3,0)
+
+    else:
+        return background
 
     return background
 
 
 background_id, background = choose_background()
 
-for i in range(30):
+# Paste Character
+n_clones = 30
+for i in range(n_clones):
     if i == 0:
-        output = background
+        output = background.copy()
     ch = choose_character()
     x = random.randint(0, 1280)
     y = random.randint(0, 798)
