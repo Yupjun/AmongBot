@@ -8,7 +8,7 @@ import random
 # home_dir = 'C:\\Users\\Jisu\\Desktop\\Amongus-Bot-main\\Amongus-Bot-main\\img_assets'
 home_dir = './'
 output_dir = os.path.join(home_dir, 'output')
-# %%
+
 def choose_background():
     background_dir = os.path.join(home_dir, 'skeld_map_bg')
     background_random = random.choice(os.listdir(background_dir))
@@ -101,7 +101,7 @@ def overlay_transparent(background, overlay, x, y):
             axis = 2,
         )
 
-    mode = random.randint(0, 1)
+    mode = random.randint(0, 2)
 
     if mode==0:
         # Basic Paste    
@@ -114,10 +114,13 @@ def overlay_transparent(background, overlay, x, y):
         overlay[..., -1] = make_mask(overlay)
         background = paste_transparency(background, overlay, x, y, w, h)
     
-    # elif mode==2:
-    #     # Apply Image Blending
-    #     if random.random() > 0.9
-    #     cv2.addWeighted(img1,0.7,img2,0.3,0)
+    elif mode==2:
+        # Apply Image Blending
+        overlay_image = overlay[..., :3]
+        mask = overlay[..., 3:] / 255.0
+        overlay_image[mask[..., 0] == 0] = 0
+        result = cv2.addWeighted(background[y:y+h, x:x+w], 0.5, (mask * overlay_image).astype(np.uint8),0.5, 0)
+        background[y:y+h, x:x+w, :3] = result
 
     else:
         return background
@@ -137,3 +140,4 @@ for i in range(n_clones):
     y = random.randint(0, 798)
     output = overlay_transparent(output, ch, x, y)
     cv2.imwrite(os.path.join(output_dir, str(background_id) + '_' + str(i) + '.png'), output)
+# %%
